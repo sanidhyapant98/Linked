@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { prisma } from "./lib/prisma.js";
 import linkRoutes from "./routes/link.routes.js";
 import { redirectLinkController } from "./controllers/link.controllers.js";
+import { notFoundHandler, errorHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 
@@ -33,6 +34,12 @@ app.get("/health", async (_req, res) => {
 });
 
 app.get("/:shortCode", redirectLinkController);
+
+// Unmatched routes -> 404
+app.use(notFoundHandler);
+
+// Centralized error handler -> must be registered last, after all routes
+app.use(errorHandler);
 
 async function startServer() {
   try {
