@@ -11,7 +11,6 @@ function generateShortCode(length = 6): string {
 export async function createLink(originalUrl: string) {
   let shortCode = generateShortCode();
 
-  // Make sure the generated code isn't already being used
   while (await prisma.link.findUnique({ where: { shortCode } })) {
     shortCode = generateShortCode();
   }
@@ -26,3 +25,10 @@ export async function createLink(originalUrl: string) {
   return link;
 }
 
+export async function getLinkByShortCode(shortCode: string) {
+  return prisma.link.findUnique({
+    where: {
+      shortCode
+    }
+  });
+}

@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { prisma } from "./lib/prisma.js";
 import linkRoutes from "./routes/link.routes.js";
+import { redirectLinkController } from "./controllers/link.controllers.js";
 
 dotenv.config();
 
@@ -30,6 +31,8 @@ app.get("/health", async (_req, res) => {
     });
   }
 });
+
+app.get("/:shortCode", redirectLinkController);
 
 async function startServer() {
   try {

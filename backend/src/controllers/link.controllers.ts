@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createLink } from "../services/link.services";
+import { createLink, getLinkByShortCode } from "../services/link.services";
 
 export async function createLinkController(
   req: Request,
@@ -32,6 +32,37 @@ export async function createLinkController(
     });
   } catch (error) {
     console.error("Failed to create link:", error);
+
+    return res.status(500).json({
+      error: "Internal server error"
+    });
+  }
+}
+
+export async function redirectLinkController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { shortCode } = req.params;
+
+    if (typeof shortCode !== "string") {
+      return res.status(404).json({
+        error: "Short link not found"
+      });
+    }
+
+    const link = await getLinkByShortCode(shortCode);
+
+    if (!link) {
+      return res.status(404).json({
+        error: "Short link not found"
+      });
+    }
+
+    return res.redirect(302, link.originalUrl);
+  } catch (error) {
+    console.error("Failed to redirect:", error);
 
     return res.status(500).json({
       error: "Internal server error"
