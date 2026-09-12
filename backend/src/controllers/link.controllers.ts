@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
-import { createLink, getLinkByShortCode } from "../services/link.services";
+import {
+  createLink,
+  getLinkByShortCode,
+  // getAllLinks,
+  // getLinkById,
+  // deleteLink,
+  incrementClickCount
+} from "../services/link.services.js";
 
 export async function createLinkController(
   req: Request,
@@ -47,8 +54,8 @@ export async function redirectLinkController(
     const { shortCode } = req.params;
 
     if (typeof shortCode !== "string") {
-      return res.status(404).json({
-        error: "Short link not found"
+      return res.status(400).json({
+        error: "Invalid short code"
       });
     }
 
@@ -59,6 +66,8 @@ export async function redirectLinkController(
         error: "Short link not found"
       });
     }
+
+    await incrementClickCount(link.id);
 
     return res.redirect(302, link.originalUrl);
   } catch (error) {

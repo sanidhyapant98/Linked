@@ -32,3 +32,16 @@ export async function getLinkByShortCode(shortCode: string) {
     }
   });
 }
+
+export async function incrementClickCount(id: number) {
+  return prisma.link.update({
+    where: {
+      id
+    },
+    data: {
+      clickCount: {
+        increment: 1
+      }
+    }
+  });
+}
