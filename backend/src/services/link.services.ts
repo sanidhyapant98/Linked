@@ -33,6 +33,41 @@ export async function getLinkByShortCode(shortCode: string) {
   });
 }
 
+export async function getAllLinks() {
+  return prisma.link.findMany({
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+}
+
+export async function getLinkById(id: number) {
+  return prisma.link.findUnique({
+    where: {
+      id
+    }
+  });
+}
+
+export async function updateLink(id: number, originalUrl: string) {
+  return prisma.link.update({
+    where: {
+      id
+    },
+    data: {
+      originalUrl
+    }
+  });
+}
+
+export async function deleteLink(id: number) {
+  return prisma.link.delete({
+    where: {
+      id
+    }
+  });
+}
+
 export async function incrementClickCount(id: number) {
   return prisma.link.update({
     where: {
