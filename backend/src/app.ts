@@ -1,8 +1,10 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 import linkRoutes from "./routes/link.routes.js";
 import { redirectLinkController } from "./controllers/link.controllers.js";
 import { notFoundHandler, errorHandler } from "./middlewares/errorHandler.js";
 import { prisma } from "./lib/prisma.js";
+import { openApiSpec } from "./docs/swagger.js";
 
 export function createApp() {
   const app = express();
@@ -14,6 +16,11 @@ export function createApp() {
   app.use(express.json());
 
   app.use("/api/links", linkRoutes);
+
+  app.get("/openapi.json", (_req, res) => {
+    res.status(200).json(openApiSpec);
+  });
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
   app.get("/health", async (_req, res) => {
     try {

@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: Linked API
+  description: URL shortener API — link management, redirects, and click analytics.
+  version: 1.0.0
+servers:
+  - url: /
+    description: Current host
+
+tags:
+  - name: Links
+    description: CRUD for shortened links
+  - name: Analytics
+    description: Click tracking and aggregated stats
+  - name: Redirect
+    description: Public short-link resolution
+  - name: Health
+    description: Service liveness
+
+paths:
+  /api/links:
+    post:
+      tags: [Links]
+      summary: Create a shortened link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLinkRequest"
+            example:
+              originalUrl: "https://example.com/some/very/long/path"
+      responses:
+        "201":
+          description: Link created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateLinkResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+    get:
+      tags: [Links]
+      summary: List links
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, clickCount, originalUrl]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: search
+          in: query
+          description: Case-insensitive match against originalUrl or shortCode
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of links
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResult"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Link"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/links/{id}:
+    parameters:
+      - $ref: "#/components/parameters/LinkId"
+    get:
+      tags: [Links]
+      summary: Get a link by ID
+      responses:
+        "200":
+          description: The link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    put:
+      tags: [Links]
+      summary: Update a link's destination URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLinkRequest"
+      responses:
+        "200":
+          description: Updated link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [Links]
+      summary: Delete a link
+      responses:
+        "204":
+          description: Deleted, no content
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/links/{id}/analytics:
+    parameters:
+      - $ref: "#/components/parameters/LinkId"
+    get:
+      tags: [Analytics]
+      summary: Get aggregated analytics for a link
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkAnalytics"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/links/{id}/clicks:
+    parameters:
+      - $ref: "#/components/parameters/LinkId"
+    get:
+      tags: [Analytics]
+      summary: Paginated raw click history for a link
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated click history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResult"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Click"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /{shortCode}:
+    get:
+      tags: [Redirect]
+      summary: Resolve a short code and redirect
+      description: Records a click (IP, user agent, referrer) then issues a 302 redirect to the original URL.
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to originalUrl
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness/readiness probe
+      responses:
+        "200":
+          description: Service and database are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  database:
+                    type: string
+                    example: connected
+        "503":
+          description: Database unreachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  database:
+                    type: string
+                    example: disconnected
+
+components:
+  parameters:
+    LinkId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^\d+$'
+      example: "42"
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    CreateLinkRequest:
+      type: object
+      required: [originalUrl]
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+
+    CreateLinkResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        shortCode:
+          type: string
+        originalUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+
+    Link:
+      type: object
+      properties:
+        id:
+          type: integer
+        shortCode:
+          type: string
+        originalUrl:
+          type: string
+          format: uri
+        clickCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Click:
+      type: object
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        referrer:
+          type: string
+          nullable: true
+        userAgent:
+          type: string
+          nullable: true
+        ipAddress:
+          type: string
+          nullable: true
+
+    ClicksByDay:
+      type: object
+      properties:
+        day:
+          type: string
+          example: "2026-09-14"
+        count:
+          type: integer
+
+    LinkAnalytics:
+      type: object
+      properties:
+        id:
+          type: integer
+        shortCode:
+          type: string
+        originalUrl:
+          type: string
+          format: uri
+        totalClicks:
+          type: integer
+        recentClicks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              createdAt:
+                type: string
+                format: date-time
+              referrer:
+                type: string
+                nullable: true
+              userAgent:
+                type: string
+                nullable: true
+        clicksByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClicksByDay"
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+
+    PaginatedResult:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              message: Resource not found
+    ValidationError:
+      description: Request failed schema validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorResponse"
