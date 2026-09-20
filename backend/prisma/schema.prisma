@@ -12,11 +12,26 @@ datasource db {
   provider = "postgresql"
 }
 
-model Link{
-  id Int @id @default(autoincrement())
-  shortCode String @unique
-  originalUrl String 
-  clickCount Int @default(0)
+model Link {
+  id          Int      @id @default(autoincrement())
+  shortCode   String   @unique
+  originalUrl String
+  clickCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  clicks Click[]
+}
+
+model Click {
+  id        Int      @id @default(autoincrement())
+  linkId    Int
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  referrer  String?
+
+  @@index([linkId])
+  @@index([createdAt])
 }

@@ -68,15 +68,69 @@ export async function deleteLink(id: number) {
   });
 }
 
-export async function incrementClickCount(id: number) {
-  return prisma.link.update({
-    where: {
-      id
-    },
-    data: {
-      clickCount: {
-        increment: 1
+export interface ClickMetadata {
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  referrer?: string | null;
+}
+
+export async function recordClick(linkId: number, metadata: ClickMetadata) {
+  // Atomic: write the event AND bump the denormalized counter together,
+  // so they never drift out of sync even if one write fails.
+  const [click] = await prisma.$transaction([
+    prisma.click.create({
+      data: {
+        linkId,
+        ipAddress: metadata.ipAddress ?? null,
+        userAgent: metadata.userAgent ?? null,
+        referrer: metadata.referrer ?? null
       }
-    }
-  });
+    }),
+    prisma.link.update({
+      where: { id: linkId },
+      data: { clickCount: { increment: 1 } }
+    })
+  ]);
+
+  return click;
+}
+
+export interface ClicksByDay {
+  day: string;
+  count: number;
+}
+
+export async function getLinkAnalytics(linkId: number) {
+  const [totalClicks, recentClicks, clicksByDay] = await Promise.all([
+    prisma.click.count({ where: { linkId } }),
+
+    prisma.click.findMany({
+      where: { linkId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        createdAt: true,
+        referrer: true,
+        userAgent: true
+      }
+    }),
+
+    prisma.$queryRaw<ClicksByDay[]>`
+      SELECT
+        TO_CHAR(DATE_TRUNC('day', "createdAt"), 'YYYY-MM-DD') AS day,
+        CAST(COUNT(*) AS INTEGER) AS count
+      FROM "Click"
+      WHERE "linkId" = ${linkId}
+        AND "createdAt" >= NOW() - INTERVAL '30 days'
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `
+  ]);
+
+  return {
+    totalClicks,
+    recentClicks,
+    clicksByDay
+  };
 }

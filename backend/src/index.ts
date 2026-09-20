@@ -9,6 +9,10 @@ dotenv.config();
 
 const app = express();
 
+// Trust the first proxy hop so req.ip reflects the real client IP
+// once this sits behind nginx/ALB/ingress (Phases 10-13).
+app.set("trust proxy", 1);
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;

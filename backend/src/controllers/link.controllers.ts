@@ -8,7 +8,8 @@ import {
   getLinkById,
   updateLink,
   deleteLink,
-  incrementClickCount
+  recordClick,
+  getLinkAnalytics
 } from "../services/link.services.js";
 
 export const createLinkController = asyncHandler(
@@ -53,7 +54,6 @@ export const updateLinkController = asyncHandler(
     const id = Number(req.params.id);
     const { originalUrl } = req.body;
 
-    // Prisma throws P2025 (translated to 404 by errorHandler) if it doesn't exist
     const updated = await updateLink(id, originalUrl);
 
     return res.status(200).json(updated);
@@ -64,10 +64,30 @@ export const deleteLinkController = asyncHandler(
   async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
-    // Prisma throws P2025 (translated to 404 by errorHandler) if it doesn't exist
     await deleteLink(id);
 
     return res.status(204).send();
+  }
+);
+
+export const getLinkAnalyticsController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    const link = await getLinkById(id);
+
+    if (!link) {
+      throw new NotFoundError("Link not found");
+    }
+
+    const analytics = await getLinkAnalytics(id);
+
+    return res.status(200).json({
+      id: link.id,
+      shortCode: link.shortCode,
+      originalUrl: link.originalUrl,
+      ...analytics
+    });
   }
 );
 
@@ -83,7 +103,11 @@ export const redirectLinkController = asyncHandler(
       throw new NotFoundError("Short link not found");
     }
 
-    await incrementClickCount(link.id);
+    await recordClick(link.id, {
+      ipAddress: req.ip,
+      userAgent: req.get("user-agent"),
+      referrer: req.get("referer")
+    });
 
     return res.redirect(302, link.originalUrl);
   }
