@@ -1,6 +1,8 @@
 .env
+.env.test
 node_modules
 /src/generated/prisma
 .agents
 .claude
 .windsurf
+/dist

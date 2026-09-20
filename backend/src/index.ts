@@ -1,49 +1,10 @@
-import express from "express";
 import dotenv from "dotenv";
 import { prisma } from "./lib/prisma.js";
-import linkRoutes from "./routes/link.routes.js";
-import { redirectLinkController } from "./controllers/link.controllers.js";
-import { notFoundHandler, errorHandler } from "./middlewares/errorHandler.js";
+import { app } from "./app.js";
 
 dotenv.config();
 
-const app = express();
-
-// Trust the first proxy hop so req.ip reflects the real client IP
-// once this sits behind nginx/ALB/ingress (Phases 10-13).
-app.set("trust proxy", 1);
-
-app.use(express.json());
-
 const PORT = process.env.PORT || 3000;
-
-app.use("/api/links", linkRoutes);
-
-app.get("/health", async (_req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-
-    res.status(200).json({
-      status: "ok",
-      database: "connected"
-    });
-  } catch (error) {
-    console.error("Database health check failed:", error);
-
-    res.status(503).json({
-      status: "error",
-      database: "disconnected"
-    });
-  }
-});
-
-app.get("/:shortCode", redirectLinkController);
-
-// Unmatched routes -> 404
-app.use(notFoundHandler);
-
-// Centralized error handler -> must be registered last, after all routes
-app.use(errorHandler);
 
 async function startServer() {
   try {
