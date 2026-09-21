@@ -3,11 +3,7 @@ import { Prisma } from "../generated/prisma/client.js";
 import { AppError, ValidationError } from "../lib/errors.js";
 import { logger } from "../lib/logger.js";
 
-export function notFoundHandler(
-  req: Request,
-  res: Response,
-  _next: NextFunction
-) {
+export function notFoundHandler(req: Request, res: Response, _next: NextFunction) {
   res.status(404).json({
     error: {
       message: `Route not found: ${req.method} ${req.originalUrl}`

@@ -1,0 +1,32 @@
+{
+  "name": "linked-repo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint backend/src",
+    "lint:fix": "eslint backend/src --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@eslint/js": "^9.14.0",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.13.0"
+  },
+  "lint-staged": {
+    "backend/src/**/*.ts": [
+      "eslint --fix"
+    ],
+    "*.{ts,js,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}

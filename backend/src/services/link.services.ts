@@ -3,10 +3,7 @@ import crypto from "crypto";
 import { Prisma } from "../generated/prisma/client.js";
 
 function generateShortCode(length = 6): string {
-  return crypto
-    .randomBytes(length)
-    .toString("base64url")
-    .slice(0, length);
+  return crypto.randomBytes(length).toString("base64url").slice(0, length);
 }
 
 export async function createLink(originalUrl: string) {
@@ -169,11 +166,7 @@ export interface ListClicksParams {
   take: number;
 }
 
-export async function getClicksForLink({
-  linkId,
-  skip,
-  take
-}: ListClicksParams) {
+export async function getClicksForLink({ linkId, skip, take }: ListClicksParams) {
   const [data, totalItems] = await prisma.$transaction([
     prisma.click.findMany({
       where: { linkId },

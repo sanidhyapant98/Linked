@@ -22,16 +22,8 @@ const router = Router();
 router.post("/", validate(createLinkSchema), createLinkController);
 router.get("/", validate(listLinksSchema), getAllLinksController);
 router.get("/:id", validate(idParamSchema), getLinkByIdController);
-router.get(
-  "/:id/analytics",
-  validate(idParamSchema),
-  getLinkAnalyticsController
-);
-router.get(
-  "/:id/clicks",
-  validate(listClicksSchema),
-  getLinkClicksController
-);
+router.get("/:id/analytics", validate(idParamSchema), getLinkAnalyticsController);
+router.get("/:id/clicks", validate(listClicksSchema), getLinkClicksController);
 router.put("/:id", validate(updateLinkSchema), updateLinkController);
 router.delete("/:id", validate(idParamSchema), deleteLinkController);
 

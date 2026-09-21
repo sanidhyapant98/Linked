@@ -10,9 +10,7 @@ export const createLinkSchema = z.object({
 
 export const updateLinkSchema = z.object({
   params: z.object({
-    id: z
-      .string()
-      .regex(/^\d+$/, { message: "id must be a positive integer" })
+    id: z.string().regex(/^\d+$/, { message: "id must be a positive integer" })
   }),
   body: z.object({
     originalUrl: z
@@ -23,17 +21,13 @@ export const updateLinkSchema = z.object({
 
 export const idParamSchema = z.object({
   params: z.object({
-    id: z
-      .string()
-      .regex(/^\d+$/, { message: "id must be a positive integer" })
+    id: z.string().regex(/^\d+$/, { message: "id must be a positive integer" })
   })
 });
 
 export const shortCodeParamSchema = z.object({
   params: z.object({
-    shortCode: z
-      .string()
-      .min(1, { message: "shortCode is required" })
+    shortCode: z.string().min(1, { message: "shortCode is required" })
   })
 });
 
@@ -70,9 +64,7 @@ export const listLinksSchema = z.object({
 
 export const listClicksSchema = z.object({
   params: z.object({
-    id: z
-      .string()
-      .regex(/^\d+$/, { message: "id must be a positive integer" })
+    id: z.string().regex(/^\d+$/, { message: "id must be a positive integer" })
   }),
   query: z.object({
     page: pageSchema,

@@ -24,9 +24,7 @@ describe("POST /api/links", () => {
   });
 
   it("rejects an invalid URL with 422", async () => {
-    const res = await request(app)
-      .post("/api/links")
-      .send({ originalUrl: "not-a-url" });
+    const res = await request(app).post("/api/links").send({ originalUrl: "not-a-url" });
 
     expect(res.status).toBe(422);
   });

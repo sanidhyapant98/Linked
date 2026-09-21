@@ -50,5 +50,4 @@ export const corsOrigins =
     ? true
     : env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
 
-export const docsEnabled =
-  env.ENABLE_API_DOCS ?? env.NODE_ENV !== "production";
+export const docsEnabled = env.ENABLE_API_DOCS ?? env.NODE_ENV !== "production";

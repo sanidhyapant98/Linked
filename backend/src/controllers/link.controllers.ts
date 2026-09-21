@@ -14,87 +14,75 @@ import {
   getClicksForLink
 } from "../services/link.services.js";
 
-export const createLinkController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { originalUrl } = req.body;
+export const createLinkController = asyncHandler(async (req: Request, res: Response) => {
+  const { originalUrl } = req.body;
 
-    const link = await createLink(originalUrl);
+  const link = await createLink(originalUrl);
 
-    return res.status(201).json({
-      id: link.id,
-      shortCode: link.shortCode,
-      originalUrl: link.originalUrl,
-      createdAt: link.createdAt
-    });
+  return res.status(201).json({
+    id: link.id,
+    shortCode: link.shortCode,
+    originalUrl: link.originalUrl,
+    createdAt: link.createdAt
+  });
+});
+
+export const getAllLinksController = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    page = 1,
+    limit = 20,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    search
+  } = req.query as unknown as {
+    page?: number;
+    limit?: number;
+    sortBy?: "createdAt" | "clickCount" | "originalUrl";
+    sortOrder?: "asc" | "desc";
+    search?: string;
+  };
+
+  const { skip, take } = getSkipTake({ page, limit });
+
+  const { data, totalItems } = await getAllLinks({
+    skip,
+    take,
+    sortBy,
+    sortOrder,
+    search
+  });
+
+  return res.status(200).json(buildPaginatedResult(data, totalItems, { page, limit }));
+});
+
+export const getLinkByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  const link = await getLinkById(id);
+
+  if (!link) {
+    throw new NotFoundError("Link not found");
   }
-);
 
-export const getAllLinksController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const {
-      page = 1,
-      limit = 20,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-      search
-    } = req.query as unknown as {
-      page?: number;
-      limit?: number;
-      sortBy?: "createdAt" | "clickCount" | "originalUrl";
-      sortOrder?: "asc" | "desc";
-      search?: string;
-    };
+  return res.status(200).json(link);
+});
 
-    const { skip, take } = getSkipTake({ page, limit });
+export const updateLinkController = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const { originalUrl } = req.body;
 
-    const { data, totalItems } = await getAllLinks({
-      skip,
-      take,
-      sortBy,
-      sortOrder,
-      search
-    });
+  const updated = await updateLink(id, originalUrl);
 
-    return res.status(200).json(
-      buildPaginatedResult(data, totalItems, { page, limit })
-    );
-  }
-);
+  return res.status(200).json(updated);
+});
 
-export const getLinkByIdController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
+export const deleteLinkController = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
 
-    const link = await getLinkById(id);
+  await deleteLink(id);
 
-    if (!link) {
-      throw new NotFoundError("Link not found");
-    }
-
-    return res.status(200).json(link);
-  }
-);
-
-export const updateLinkController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const { originalUrl } = req.body;
-
-    const updated = await updateLink(id, originalUrl);
-
-    return res.status(200).json(updated);
-  }
-);
-
-export const deleteLinkController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-
-    await deleteLink(id);
-
-    return res.status(204).send();
-  }
-);
+  return res.status(204).send();
+});
 
 export const getLinkAnalyticsController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -139,9 +127,7 @@ export const getLinkClicksController = asyncHandler(
       take
     });
 
-    return res.status(200).json(
-      buildPaginatedResult(data, totalItems, { page, limit })
-    );
+    return res.status(200).json(buildPaginatedResult(data, totalItems, { page, limit }));
   }
 );
 

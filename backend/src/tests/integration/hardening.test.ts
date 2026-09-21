@@ -21,9 +21,7 @@ describe("security headers", () => {
   });
 
   it("echoes a caller-supplied request ID", async () => {
-    const res = await request(app)
-      .get("/health")
-      .set("x-request-id", "fixed-id-abc");
+    const res = await request(app).get("/health").set("x-request-id", "fixed-id-abc");
     expect(res.headers["x-request-id"]).toBe("fixed-id-abc");
   });
 });
