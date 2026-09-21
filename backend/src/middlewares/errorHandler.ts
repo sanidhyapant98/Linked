@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Prisma } from "../generated/prisma/client.js";
 import { AppError, ValidationError } from "../lib/errors.js";
+import { logger } from "../lib/logger.js";
 
 export function notFoundHandler(
   req: Request,
@@ -16,16 +17,13 @@ export function notFoundHandler(
 
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) {
-  // Known, operational errors we threw on purpose
   if (err instanceof AppError) {
     const body: Record<string, unknown> = {
-      error: {
-        message: err.message
-      }
+      error: { message: err.message }
     };
 
     if (err instanceof ValidationError && err.details) {
@@ -35,23 +33,18 @@ export function errorHandler(
     return res.status(err.statusCode).json(body);
   }
 
-  // Prisma-specific errors get translated to sane HTTP responses
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2025") {
-      return res.status(404).json({
-        error: { message: "Resource not found" }
-      });
+      return res.status(404).json({ error: { message: "Resource not found" } });
     }
-
     if (err.code === "P2002") {
-      return res.status(409).json({
-        error: { message: "Resource already exists" }
-      });
+      return res.status(409).json({ error: { message: "Resource already exists" } });
     }
   }
 
-  // Anything else is unexpected — log it, don't leak internals to the client
-  console.error("Unhandled error:", err);
+  // req.log carries the request ID, so this error can be traced back
+  // to the exact request that caused it.
+  (req.log ?? logger).error({ err }, "Unhandled error");
 
   return res.status(500).json({
     error: { message: "Internal server error" }
