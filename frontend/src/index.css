@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #fcfdf9;
+  --color-mist: #e4eae3;
+  --color-line: #d3dcd1;
+  --color-pine: #1b2d22;
+  --color-moss: #175c3e;
+  --color-route: #2e4bff;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-ui: "Space Grotesk", system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-pine);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--color-route);
+  color: #fff;
+}
+
+/* left-aligned ledger rows, not SaaS cards */
+.ledger-row {
+  border-top: 1px solid var(--color-line);
+}
+.ledger-row:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* perforated ticket edge for the single memorable element: result ticket */
+.ticket {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid var(--color-pine);
+}
+.ticket::before,
+.ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: var(--color-paper);
+  border: 1.5px solid var(--color-pine);
+  border-radius: 9999px;
+  transform: translateY(-50%);
+}
+.ticket::before {
+  left: -11px;
+}
+.ticket::after {
+  right: -11px;
+}
+.ticket-perf {
+  background-image: linear-gradient(to bottom, var(--color-pine) 45%, transparent 45%);
+  background-size: 1.5px 9px;
+  background-repeat: repeat-y;
+  width: 1.5px;
+}
+
+.shortcode {
+  font-family: var(--font-code);
+  letter-spacing: -0.02em;
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+/* single orchestrated entrance: ticket stamp only */
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) rotate(-0.6deg) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+.stamp-in {
+  animation: stamp-in 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-in {
+    animation: none;
+  }
+  * {
+    transition: none !important;
+  }
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--color-route);
+  outline-offset: 2px;
+}
+
+input:focus,
+select:focus,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* bar chart bars grow on mount via inline style, no scattered scroll reveals */
+.bar-grow {
+  transform-origin: bottom;
+}
