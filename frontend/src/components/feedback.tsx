@@ -1,8 +1,22 @@
-export function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorBanner({
+  message,
+  onRetry
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
   if (!message) return null;
   return (
-    <div role="alert" className="flex flex-wrap items-center gap-3 rounded-2xl border border-pine bg-mist px-4 py-3 text-[15px] text-pine">
-      <span aria-hidden="true" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-pine text-[13px] text-paper">!</span>
+    <div
+      role="alert"
+      className="flex flex-wrap items-center gap-3 rounded-2xl border border-pine bg-mist px-4 py-3 text-[15px] text-pine"
+    >
+      <span
+        aria-hidden="true"
+        className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-pine text-[13px] text-paper"
+      >
+        !
+      </span>
       <p className="min-w-0 flex-1">{message}</p>
       {onRetry && (
         <button

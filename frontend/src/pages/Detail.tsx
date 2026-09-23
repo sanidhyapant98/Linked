@@ -4,7 +4,13 @@ import { ClicksChart } from "../components/ClicksChart";
 import { CopyButton } from "../components/CopyButton";
 import { ErrorBanner, LoadingSkeleton } from "../components/feedback";
 import { DeleteConfirm, LinkForm } from "../components/LinkForm";
-import { api, friendlyMessage, shortUrlFor, type LinkAnalytics, type PaginatedClicks } from "../lib/api";
+import {
+  api,
+  friendlyMessage,
+  shortUrlFor,
+  type LinkAnalytics,
+  type PaginatedClicks
+} from "../lib/api";
 import { formatDate, truncate } from "../lib/format";
 
 export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
@@ -23,7 +29,10 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
     setLoading(true);
     setError("");
     try {
-      const [a, c] = await Promise.all([api.getAnalytics(id), api.getClicks(id, page, 20)]);
+      const [a, c] = await Promise.all([
+        api.getAnalytics(id),
+        api.getClicks(id, page, 20)
+      ]);
       setAnalytics(a);
       setClicks(c);
       setClickPage(page);
@@ -91,7 +100,10 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
             {analytics.totalClicks} {analytics.totalClicks === 1 ? "tap" : "taps"}
           </span>
         </div>
-        <p className="mt-3 break-all text-[15px] text-pine/75" title={analytics.originalUrl}>
+        <p
+          className="mt-3 break-all text-[15px] text-pine/75"
+          title={analytics.originalUrl}
+        >
           {truncate(analytics.originalUrl, 100)}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -149,13 +161,23 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
       <section aria-label="Recent clicks" className="mt-8">
         <h2 className="display text-3xl">Latest arrivals</h2>
         {!analytics.recentClicks.length ? (
-          <p className="mt-3 text-[15px] text-pine/65">Nobody has tapped this one yet. Share it and check back.</p>
+          <p className="mt-3 text-[15px] text-pine/65">
+            Nobody has tapped this one yet. Share it and check back.
+          </p>
         ) : (
           <ul className="mt-4 divide-y divide-line border-y border-line">
             {analytics.recentClicks.map((c) => (
-              <li key={c.id} className="flex flex-col gap-1 py-3 text-[14px] sm:flex-row sm:items-center sm:gap-4">
-                <span className="tabular-nums text-pine/70">{formatDate(c.createdAt)}</span>
-                <span className="min-w-0 flex-1 truncate text-pine/80" title={c.userAgent || ""}>
+              <li
+                key={c.id}
+                className="flex flex-col gap-1 py-3 text-[14px] sm:flex-row sm:items-center sm:gap-4"
+              >
+                <span className="tabular-nums text-pine/70">
+                  {formatDate(c.createdAt)}
+                </span>
+                <span
+                  className="min-w-0 flex-1 truncate text-pine/80"
+                  title={c.userAgent || ""}
+                >
                   {truncate(c.userAgent || "Unknown device", 64)}
                 </span>
                 <span className="truncate text-pine/60" title={c.referrer || ""}>
@@ -170,26 +192,50 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
       <section aria-label="Full click history" className="mt-8">
         <h2 className="display text-3xl">Full history</h2>
         {!clicks || !clicks.data.length ? (
-          <p className="mt-3 text-[15px] text-pine/65">No recorded visits on this page of history.</p>
+          <p className="mt-3 text-[15px] text-pine/65">
+            No recorded visits on this page of history.
+          </p>
         ) : (
           <>
             <div className="mt-4 overflow-x-auto rounded-2xl border border-pine/20">
               <table className="w-full min-w-160 border-collapse text-left text-[14px]">
                 <thead>
                   <tr className="bg-mist/70 text-pine/70">
-                    <th scope="col" className="px-4 py-3 font-medium">When</th>
-                    <th scope="col" className="px-4 py-3 font-medium">Referrer</th>
-                    <th scope="col" className="px-4 py-3 font-medium">Device</th>
-                    <th scope="col" className="px-4 py-3 font-medium">Address</th>
+                    <th scope="col" className="px-4 py-3 font-medium">
+                      When
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium">
+                      Referrer
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium">
+                      Device
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium">
+                      Address
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line bg-white">
                   {clicks.data.map((c) => (
                     <tr key={c.id}>
-                      <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatDate(c.createdAt)}</td>
-                      <td className="max-w-55 truncate px-4 py-3" title={c.referrer || ""}>{c.referrer || "Direct"}</td>
-                      <td className="max-w-65 truncate px-4 py-3" title={c.userAgent || ""}>{truncate(c.userAgent || "Unknown", 48)}</td>
-                      <td className="whitespace-nowrap px-4 py-3 tabular-nums text-pine/65">{c.ipAddress || "—"}</td>
+                      <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                        {formatDate(c.createdAt)}
+                      </td>
+                      <td
+                        className="max-w-55 truncate px-4 py-3"
+                        title={c.referrer || ""}
+                      >
+                        {c.referrer || "Direct"}
+                      </td>
+                      <td
+                        className="max-w-65 truncate px-4 py-3"
+                        title={c.userAgent || ""}
+                      >
+                        {truncate(c.userAgent || "Unknown", 48)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 tabular-nums text-pine/65">
+                        {c.ipAddress || "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,7 +250,9 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
               >
                 Newer
               </button>
-              <span className="text-pine/65">Page {clicks.meta.page} of {Math.max(1, clicks.meta.totalPages)}</span>
+              <span className="text-pine/65">
+                Page {clicks.meta.page} of {Math.max(1, clicks.meta.totalPages)}
+              </span>
               <button
                 type="button"
                 disabled={!clicks.meta.hasNextPage}
@@ -234,12 +282,18 @@ export function NotFound() {
   return (
     <div className="pt-16">
       <p className="shortcode text-lg text-moss">404</p>
-      <h1 className="display mt-2 text-[clamp(40px,7vw,72px)]">That link fell off the chain.</h1>
+      <h1 className="display mt-2 text-[clamp(40px,7vw,72px)]">
+        That link fell off the chain.
+      </h1>
       <p className="mt-3 max-w-[52ch] text-[16px] text-pine/70">
-        The address you asked for is not here. It may have been deleted, or the id was mistyped.
+        The address you asked for is not here. It may have been deleted, or the id was
+        mistyped.
       </p>
       <p className="mt-6">
-        <Link to="/" className="rounded-full bg-pine px-6 py-3 text-[15px] font-medium text-paper hover:bg-moss">
+        <Link
+          to="/"
+          className="rounded-full bg-pine px-6 py-3 text-[15px] font-medium text-paper hover:bg-moss"
+        >
           Back to shortening
         </Link>
       </p>

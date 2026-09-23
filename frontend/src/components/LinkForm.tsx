@@ -6,7 +6,7 @@ export function LinkForm({
   submitLabel,
   onSaved,
   onCancel,
-  editId,
+  editId
 }: {
   initial?: string;
   submitLabel: string;
@@ -34,7 +34,8 @@ export function LinkForm({
       else await api.createLink(url);
       onSaved();
     } catch (err) {
-      if (err instanceof ApiError && err.fieldErrors.originalUrl) setError(err.fieldErrors.originalUrl);
+      if (err instanceof ApiError && err.fieldErrors.originalUrl)
+        setError(err.fieldErrors.originalUrl);
       else setError(friendlyMessage(err));
     } finally {
       setPending(false);
@@ -87,7 +88,7 @@ export function DeleteConfirm({
   name,
   onCancel,
   onConfirm,
-  pending,
+  pending
 }: {
   name: string;
   onCancel: () => void;
@@ -95,13 +96,24 @@ export function DeleteConfirm({
   pending: boolean;
 }) {
   return (
-    <div role="alertdialog" aria-modal="true" aria-label="Delete link" className="fixed inset-0 z-50 flex items-center justify-center bg-pine/40 p-4">
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Delete link"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-pine/40 p-4"
+    >
       <div className="w-full max-w-md rounded-3xl border-[1.5px] border-pine bg-paper p-6">
         <h2 className="display text-2xl">Remove this chain link?</h2>
         <p className="mt-2 break-all text-[15px] text-pine/75">{name}</p>
-        <p className="mt-1 text-[14px] text-pine/60">The short address stops working. This cannot be undone.</p>
+        <p className="mt-1 text-[14px] text-pine/60">
+          The short address stops working. This cannot be undone.
+        </p>
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-full border border-pine/25 px-5 py-2.5 text-sm font-medium">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-pine/25 px-5 py-2.5 text-sm font-medium"
+          >
             Keep it
           </button>
           <button

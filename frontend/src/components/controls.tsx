@@ -3,7 +3,7 @@ import type { PaginationMeta } from "../lib/api";
 
 export function Pagination({
   meta,
-  onPage,
+  onPage
 }: {
   meta: PaginationMeta;
   onPage: (page: number) => void;
@@ -35,14 +35,16 @@ export function Pagination({
 
 export function SearchInput({
   value,
-  onChange,
+  onChange
 }: {
   value: string;
   onChange: (v: string) => void;
 }) {
   return (
     <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-pine/25 bg-white px-4 py-2.5 focus-within:border-pine">
-      <span aria-hidden="true" className="text-pine/50">⌕</span>
+      <span aria-hidden="true" className="text-pine/50">
+        ⌕
+      </span>
       <span className="sr-only">Search links</span>
       <input
         value={value}
@@ -57,7 +59,7 @@ export function SearchInput({
 export function SortSelect({
   sortBy,
   sortOrder,
-  onChange,
+  onChange
 }: {
   sortBy: string;
   sortOrder: string;
@@ -66,7 +68,7 @@ export function SortSelect({
   const options = [
     { value: "createdAt", label: "Newest", hint: "Recently shortened first" },
     { value: "clickCount", label: "Most tapped", hint: "Highest taps first" },
-    { value: "originalUrl", label: "Destination", hint: "Ordered A to Z" },
+    { value: "originalUrl", label: "Destination", hint: "Ordered A to Z" }
   ];
   const current = options.find((o) => o.value === sortBy) ?? options[0];
   const descending = sortOrder !== "asc";
@@ -87,7 +89,7 @@ export function SortSelect({
       document.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open ]);
+  }, [open]);
 
   return (
     <div className="flex items-stretch gap-2">
@@ -100,7 +102,10 @@ export function SortSelect({
           title="Choose how the ledger is ordered"
           className={`group flex items-center gap-2 rounded-full border-[1.5px] border-pine bg-white py-2 pl-4 pr-3 text-sm transition-colors hover:bg-mist/60 ${open ? "bg-mist/60" : ""}`}
         >
-          <span aria-hidden="true" className={`flex h-6 w-6 items-center justify-center rounded-full text-[13px] transition-colors ${open ? "bg-pine text-paper" : "bg-mist text-pine group-hover:bg-pine group-hover:text-paper"}`}>
+          <span
+            aria-hidden="true"
+            className={`flex h-6 w-6 items-center justify-center rounded-full text-[13px] transition-colors ${open ? "bg-pine text-paper" : "bg-mist text-pine group-hover:bg-pine group-hover:text-paper"}`}
+          >
             ⇅
           </span>
           <span className="text-[13px] font-medium text-pine/55">Sort</span>
@@ -147,8 +152,12 @@ export function SortSelect({
                       {selected ? "✓" : "·"}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold leading-tight">{o.label}</span>
-                      <span className={`block text-xs leading-tight ${selected ? "text-paper/70" : "text-pine/55"}`}>
+                      <span className="block text-sm font-semibold leading-tight">
+                        {o.label}
+                      </span>
+                      <span
+                        className={`block text-xs leading-tight ${selected ? "text-paper/70" : "text-pine/55"}`}
+                      >
                         {o.hint}
                       </span>
                     </span>
@@ -162,8 +171,16 @@ export function SortSelect({
       <button
         type="button"
         onClick={() => onChange(sortBy, descending ? "asc" : "desc")}
-        aria-label={descending ? "Sorted descending, switch to ascending" : "Sorted ascending, switch to descending"}
-        title={descending ? "Descending — show newest / largest first" : "Ascending — show oldest / smallest first"}
+        aria-label={
+          descending
+            ? "Sorted descending, switch to ascending"
+            : "Sorted ascending, switch to descending"
+        }
+        title={
+          descending
+            ? "Descending — show newest / largest first"
+            : "Ascending — show oldest / smallest first"
+        }
         className="flex w-[42px] items-center justify-center rounded-full border-[1.5px] border-pine bg-pine text-paper transition-colors hover:bg-moss"
       >
         <svg

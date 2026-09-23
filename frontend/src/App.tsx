@@ -15,18 +15,27 @@ function Shell() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-full focus:bg-pine focus:px-4 focus:py-2 focus:text-paper">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-full focus:bg-pine focus:px-4 focus:py-2 focus:text-paper"
+      >
         Skip to content
       </a>
       <header className="border-b-[1.5px] border-pine">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-3 px-5 py-4">
           <Link to="/" className="flex items-center gap-2.5" aria-label="Linked home">
-            <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-pine text-lg text-paper">
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-pine text-lg text-paper"
+            >
               ⛓
             </span>
             <span className="display text-[26px] font-bold">Linked</span>
           </Link>
-          <nav aria-label="Primary" className="ml-auto flex items-center gap-1 text-[15px] font-medium">
+          <nav
+            aria-label="Primary"
+            className="ml-auto flex items-center gap-1 text-[15px] font-medium"
+          >
             <NavLink
               to="/"
               end
@@ -72,7 +81,10 @@ function Shell() {
       </footer>
 
       {notice && (
-        <div role="status" className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border-[1.5px] border-pine bg-pine px-5 py-2.5 text-sm font-medium text-paper shadow-lg">
+        <div
+          role="status"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border-[1.5px] border-pine bg-pine px-5 py-2.5 text-sm font-medium text-paper shadow-lg"
+        >
           {notice}
         </div>
       )}
