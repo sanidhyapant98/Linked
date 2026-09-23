@@ -147,8 +147,14 @@ export function DashboardControls({
   );
 }
 
-export function DashboardSection({ onNotice }: { onNotice: (m: string) => void }) {
-  const s = useLinksList();
+export function DashboardSection({
+  onNotice,
+  refreshKey = 0
+}: {
+  onNotice: (m: string) => void;
+  refreshKey?: number;
+}) {
+  const s = useLinksList(refreshKey);
   return (
     <section aria-label="All links" className="mt-10">
       <div className="flex items-baseline justify-between gap-4">

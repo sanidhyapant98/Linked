@@ -69,9 +69,10 @@ export function LinkForm({
           <button
             type="submit"
             disabled={pending}
+            aria-busy={pending}
             className="rounded-full bg-route px-7 py-3.5 text-[15px] font-semibold text-white disabled:opacity-60 hover:brightness-110"
           >
-            {pending ? "Working" : submitLabel}
+            {pending ? "Working…" : submitLabel}
           </button>
         </div>
       </div>

@@ -9,12 +9,14 @@ import {
   shortUrlFor,
   type CreateLinkResponse
 } from "../lib/api";
+import { DashboardSection } from "./Dashboard";
 
 export function Home({ onNotice }: { onNotice: (m: string) => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<CreateLinkResponse | null>(null);
+  const [ledgerKey, setLedgerKey] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +33,7 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
       const r = await api.createLink(url);
       setResult(r);
       setValue("");
+      setLedgerKey((k) => k + 1);
       onNotice(`Short link /${r.shortCode} ready.`);
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors.originalUrl)
@@ -72,9 +75,10 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
               <button
                 type="submit"
                 disabled={pending}
+                aria-busy={pending}
                 className="rounded-full bg-route px-7 py-3.5 text-[15px] font-semibold text-white disabled:opacity-60 hover:brightness-110"
               >
-                {pending ? "Linking" : "Shorten"}
+                {pending ? "Linking…" : "Shorten"}
               </button>
             </div>
             {error && (
@@ -131,6 +135,8 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
           </article>
         )}
       </section>
+
+      <DashboardSection onNotice={onNotice} refreshKey={ledgerKey} />
     </div>
   );
 }

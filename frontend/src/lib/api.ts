@@ -55,6 +55,19 @@ export interface PaginatedClicks {
   meta: PaginationMeta;
 }
 
+export type SortBy = "createdAt" | "clickCount" | "originalUrl";
+export type SortOrder = "asc" | "desc";
+
+export interface ListLinksParams {
+  page?: number;
+  limit?: number;
+  sortBy?: SortBy | string;
+  sortOrder?: SortOrder | string;
+  search?: string;
+}
+
+const REQUEST_TIMEOUT_MS = 10_000;
+
 export type ApiErrorKind =
   "validation" | "not-found" | "rate-limit" | "network" | "unknown";
 
@@ -88,18 +101,30 @@ export function shortUrlFor(shortCode: string): string {
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {
       ...options,
+      signal: controller.signal,
       headers: { "Content-Type": "application/json", ...(options.headers || {}) }
     });
-  } catch {
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new ApiError(
+        "network",
+        "Request timed out. Check your connection and try again.",
+        0
+      );
+    }
     throw new ApiError(
       "network",
       "Could not reach the server. Check your connection and try again.",
       0
     );
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (res.status === 204) return undefined as unknown as T;
@@ -175,26 +200,27 @@ export function assertValidUrl(input: string): string {
   }
 }
 
+function clampPage(n: unknown, fallback = 1): number {
+  const v = Math.floor(Number(n));
+  return Number.isFinite(v) && v >= 1 ? v : fallback;
+}
+
+function clampLimit(n: unknown, fallback = 20): number {
+  const v = Math.floor(Number(n));
+  if (!Number.isFinite(v)) return fallback;
+  return Math.min(100, Math.max(1, v));
+}
+
 export const api = {
   createLink: (originalUrl: string) =>
     apiFetch<CreateLinkResponse>("/api/links", {
       method: "POST",
       body: JSON.stringify({ originalUrl })
     }),
-  listLinks: (
-    params: {
-      page?: number;
-      limit?: number;
-      sortBy?: string;
-      sortOrder?: string;
-      search?: string;
-    } = {}
-  ) => {
+  listLinks: (params: ListLinksParams = {}) => {
     const q = new URLSearchParams();
-    const page = Math.max(1, Math.floor(Number(params.page) || 1));
-    const limit = Math.min(100, Math.max(1, Math.floor(Number(params.limit) || 20)));
-    q.set("page", String(page));
-    q.set("limit", String(limit));
+    q.set("page", String(clampPage(params.page)));
+    q.set("limit", String(clampLimit(params.limit)));
     q.set("sortBy", params.sortBy || "createdAt");
     q.set("sortOrder", params.sortOrder || "desc");
     if (params.search?.trim()) q.set("search", params.search.trim());
@@ -227,7 +253,7 @@ export const api = {
     if (!/^\d+$/.test(String(id)))
       throw new ApiError("validation", "id must be a positive integer", 0);
     return apiFetch<PaginatedClicks>(
-      `/api/links/${id}/clicks?page=${page}&limit=${limit}`
+      `/api/links/${id}/clicks?page=${clampPage(page)}&limit=${clampLimit(limit)}`
     );
   },
   health: () => apiFetch<{ status: string; database: string }>("/health")

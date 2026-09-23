@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { ApiError, api, friendlyMessage, type Link as LinkType } from "../lib/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { friendlyMessage, api, type Link as LinkType } from "../lib/api";
 
 function useDebounced(value: string, ms = 300): string {
   const [v, setV] = useState(value);
@@ -19,7 +19,7 @@ export interface LinksListMeta {
   hasPreviousPage: boolean;
 }
 
-export function useLinksList() {
+export function useLinksList(externalRefreshKey = 0) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -30,8 +30,10 @@ export function useLinksList() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const debounced = useDebounced(search);
+  const requestId = useRef(0);
 
   const load = useCallback(async () => {
+    const id = ++requestId.current;
     setLoading(true);
     setError("");
     try {
@@ -42,40 +44,20 @@ export function useLinksList() {
         sortOrder,
         search: debounced
       });
+      if (requestId.current !== id) return;
       setData(res);
-    } catch (e) {
-      if (e instanceof ApiError && e.kind === "network") setError(e.message);
-      else setError(friendlyMessage(e));
+    } catch (e: unknown) {
+      if (requestId.current !== id) return;
+      setError(friendlyMessage(e));
     } finally {
-      setLoading(false);
+      if (requestId.current === id) setLoading(false);
     }
   }, [page, sortBy, sortOrder, debounced]);
 
-  // Data fetch on query change: syncing component state with the API (external system).
+  // Effect syncs with the API (external system): fetch on query change is intentional.
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const res = await api.listLinks({
-        page,
-        limit: 20,
-        sortBy,
-        sortOrder,
-        search: debounced
-      });
-      if (cancelled) return;
-      setData(res);
-      setError("");
-      setLoading(false);
-    })().catch((e: unknown) => {
-      if (cancelled) return;
-      if (e instanceof ApiError && e.kind === "network") setError(e.message);
-      else setError(friendlyMessage(e));
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [page, sortBy, sortOrder, debounced]);
+    void load();
+  }, [load, externalRefreshKey]);
 
   return {
     search,
@@ -96,7 +78,7 @@ export function useLinksList() {
     },
     page,
     setPage: (p: number) => {
-      setPage(p);
+      setPage(Math.max(1, Math.floor(p) || 1));
       setError("");
       setLoading(true);
     },

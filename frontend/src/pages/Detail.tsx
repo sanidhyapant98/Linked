@@ -53,7 +53,7 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
     try {
       await api.deleteLink(id);
       onNotice("Link removed.");
-      navigate("/");
+      navigate("/links");
     } catch (e) {
       onNotice(friendlyMessage(e));
     } finally {
@@ -83,7 +83,7 @@ export function Detail({ onNotice }: { onNotice: (m: string) => void }) {
 
   return (
     <div className="pt-10">
-      <Link to="/" className="text-sm font-medium text-pine/60 hover:text-route">
+      <Link to="/links" className="text-sm font-medium text-pine/60 hover:text-route">
         ← All links
       </Link>
       <header className="mt-3 border-y-[1.5px] border-pine py-6">
