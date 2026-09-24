@@ -97,7 +97,9 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
                   className="ticket stamp-in flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-medium text-pine/60">Your chain link</p>
+                    <p className="text-[13px] font-medium text-pine/60">
+                      Your chain link
+                    </p>
                     <a
                       href={shortUrlFor(result.shortCode)}
                       target="_blank"
