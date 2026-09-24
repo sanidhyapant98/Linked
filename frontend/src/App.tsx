@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Link, NavLink, Route, Routes } from "react-router-dom";
-import { HealthBadge } from "./components/HealthBadge";
 import { DashboardSection } from "./pages/Dashboard";
 import { Detail, NotFound } from "./pages/Detail";
 import { Home } from "./pages/Home";
@@ -74,14 +73,11 @@ function Shell() {
         </Routes>
       </main>
 
-      <footer className="h-[72px] shrink-0 border-t border-line">
+      <footer className="h-18 shrink-0 border-t border-line">
         <div className="mx-auto flex h-full max-w-5xl flex-wrap items-center gap-3 px-5 text-sm text-pine/60">
           <span>Linked shortens and remembers. Paste, share, count the taps.</span>
-          <span className="ml-auto flex items-center gap-3">
-            <span className="hidden sm:inline">
-              Short links open in a new tab, never via fetch.
-            </span>
-            <HealthBadge />
+          <span className="ml-auto hidden sm:inline">
+            Short links open in a new tab, never via fetch.
           </span>
         </div>
       </footer>

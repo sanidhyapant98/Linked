@@ -9,14 +9,12 @@ import {
   shortUrlFor,
   type CreateLinkResponse
 } from "../lib/api";
-import { DashboardSection } from "./Dashboard";
 
 export function Home({ onNotice }: { onNotice: (m: string) => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<CreateLinkResponse | null>(null);
-  const [ledgerKey, setLedgerKey] = useState(0);
+  const [sessionLinks, setSessionLinks] = useState<CreateLinkResponse[]>([]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,9 +29,8 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
     setPending(true);
     try {
       const r = await api.createLink(url);
-      setResult(r);
+      setSessionLinks((prev) => [r, ...prev]);
       setValue("");
-      setLedgerKey((k) => k + 1);
       onNotice(`Short link /${r.shortCode} ready.`);
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors.originalUrl)
@@ -88,55 +85,54 @@ export function Home({ onNotice }: { onNotice: (m: string) => void }) {
             )}
           </form>
         </div>
-
-        {result && (
-          <article
-            aria-live="polite"
-            className="ticket stamp-in mt-6 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium text-pine/60">Your chain link</p>
-              <a
-                href={shortUrlFor(result.shortCode)}
-                target="_blank"
-                rel="noopener"
-                className="shortcode mt-1 block truncate text-[26px] font-medium text-route hover:underline"
-                title={shortUrlFor(result.shortCode)}
-              >
-                {shortUrlFor(result.shortCode)}
-              </a>
-              <p
-                className="mt-1 truncate text-[14px] text-pine/65"
-                title={result.originalUrl}
-              >
-                {result.originalUrl}
-              </p>
-            </div>
-            <div
-              aria-hidden="true"
-              className="ticket-perf hidden self-stretch sm:block"
-            />
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <CopyButton text={shortUrlFor(result.shortCode)} />
-              <Link
-                to={`/links/${result.id}`}
-                className="rounded-full bg-pine px-4 py-2 text-[13px] font-medium text-paper hover:bg-moss"
-              >
-                View stats
-              </Link>
-              <button
-                type="button"
-                onClick={() => setResult(null)}
-                className="rounded-full border border-pine/25 px-4 py-2 text-[13px] font-medium"
-              >
-                Shorten another
-              </button>
-            </div>
-          </article>
-        )}
       </section>
 
-      <DashboardSection onNotice={onNotice} refreshKey={ledgerKey} />
+      {sessionLinks.length > 0 && (
+        <section aria-label="Links created in this session" className="mt-6">
+          <ul className="flex flex-col gap-4">
+            {sessionLinks.map((result) => (
+              <li key={result.id}>
+                <article
+                  aria-live="polite"
+                  className="ticket stamp-in flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-medium text-pine/60">Your chain link</p>
+                    <a
+                      href={shortUrlFor(result.shortCode)}
+                      target="_blank"
+                      rel="noopener"
+                      className="shortcode mt-1 block truncate text-[26px] font-medium text-route hover:underline"
+                      title={shortUrlFor(result.shortCode)}
+                    >
+                      {shortUrlFor(result.shortCode)}
+                    </a>
+                    <p
+                      className="mt-1 truncate text-[14px] text-pine/65"
+                      title={result.originalUrl}
+                    >
+                      {result.originalUrl}
+                    </p>
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    className="ticket-perf hidden self-stretch sm:block"
+                  />
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <CopyButton text={shortUrlFor(result.shortCode)} />
+                    <Link
+                      to={`/links/${result.id}`}
+                      className="rounded-full bg-pine px-4 py-2 text-[13px] font-medium text-paper hover:bg-moss"
+                    >
+                      View stats
+                    </Link>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
