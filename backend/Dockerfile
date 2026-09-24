@@ -23,13 +23,19 @@ RUN npm prune --omit=dev
 FROM node:22-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl libc6-compat
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/prisma.config.ts ./prisma.config.ts
-COPY --from=build /app/openapi.yaml ./openapi.yaml
+RUN apk add --no-cache openssl libc6-compat && \
+    addgroup -S app && adduser -S app -G app || true
 
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/package.json ./package.json
+COPY --chown=node:node --from=build /app/prisma ./prisma
+COPY --chown=node:node --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY --chown=node:node --from=build /app/openapi.yaml ./openapi.yaml
+
+USER node
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD sh -c "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/health || exit 1"
+
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
