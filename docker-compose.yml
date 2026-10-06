@@ -31,6 +31,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgres@db:5432/Linked
+      # Local compose runs a single replica, so in-container migrate is safe.
+      # In K8s set this to "false" and use an initContainer instead.
+      RUN_MIGRATIONS: "true"
       CORS_ORIGIN: http://localhost:8080
       RATE_LIMIT_WINDOW_MS: 60000
       RATE_LIMIT_MAX: 100
@@ -46,7 +49,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://localhost:3000
+        # Empty = same-origin. Browser calls /api, /health, /<shortCode>
+        # on :8080 and nginx proxies them to http://backend:3000.
+        # No rebuild needed per environment (K8s-ready).
+        VITE_API_BASE_URL: ""
     container_name: linked-frontend
     restart: unless-stopped
     depends_on:

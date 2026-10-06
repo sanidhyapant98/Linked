@@ -88,9 +88,15 @@ export class ApiError extends Error {
   }
 }
 
-const BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
-  "http://localhost:3000";
+const _rawBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+// undefined (var not set, e.g. `vite dev`) -> local dev default.
+// "" (empty string, baked via `VITE_API_BASE_URL=""`) -> same-origin.
+//    In Docker/K8s the nginx sidecar reverse-proxies /api, /health,
+//    /openapi.json, /api-docs and short-code redirects to the backend,
+//    so the browser never needs a hardcoded backend host.
+// Any other value -> absolute backend origin (e.g. http://localhost:3000).
+const _trimmedBase = _rawBase?.trim().replace(/\/$/, "");
+const BASE = _trimmedBase === undefined ? "http://localhost:3000" : _trimmedBase;
 
 export function baseUrl(): string {
   return BASE;
