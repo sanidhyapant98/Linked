@@ -103,6 +103,9 @@ export function baseUrl(): string {
 }
 
 export function shortUrlFor(shortCode: string): string {
+  if (!BASE && typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/${shortCode}`;
+  }
   return `${BASE}/${shortCode}`;
 }
 
