@@ -55,31 +55,65 @@ jobs:
           docker push "$REGISTRY/linked-backend:latest"
 
       - name: Deploy on EC2
-        uses: appleboy/ssh-action@v1
         env:
           IMAGE_TAG: ${{ github.sha }}
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE_TAG,REGISTRY
-          script: |
-            set -eu
+          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+        run: |
+          set -euo pipefail
 
-            cd /home/ec2-user/linked
+          SCRIPT=$(cat <<EOF
+          set -euo pipefail
 
-            export IMAGE_TAG="$IMAGE_TAG"
-            export REGISTRY="$REGISTRY"
+          cd /home/ec2-user/linked
 
-            aws ecr get-login-password \
-              --region us-east-1 | \
-              docker login \
-                --username AWS \
-                --password-stdin "$REGISTRY"
+          export IMAGE_TAG="${IMAGE_TAG}"
 
-            docker compose config --quiet
-            docker compose pull
-            docker compose up -d --remove-orphans
+          aws ecr get-login-password \
+            --region us-east-1 | \
+            docker login \
+              --username AWS \
+              --password-stdin "${REGISTRY}"
 
-            docker compose ps
+          docker compose -f docker-compose.prod.yml config --quiet
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+          docker compose -f docker-compose.prod.yml ps
+          EOF
+          )
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy Linked ${IMAGE_TAG}" \
+            --parameters "$(jq -n --arg s "$SCRIPT" '{commands: [$s]}')" \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "SSM command: $COMMAND_ID"
+
+          STATUS="Pending"
+          for _ in $(seq 1 60); do
+            STATUS=$(aws ssm get-command-invocation \
+              --instance-id "$INSTANCE_ID" \
+              --command-id "$COMMAND_ID" \
+              --query 'Status' \
+              --output text 2>/dev/null || echo Pending)
+            case "$STATUS" in
+              Success|Failed|Cancelled|TimedOut) break ;;
+            esac
+            sleep 10
+          done
+
+          echo "Status: $STATUS"
+
+          aws ssm get-command-invocation \
+            --instance-id "$INSTANCE_ID" \
+            --command-id "$COMMAND_ID" \
+            --query '{stdout: StandardOutputContent, stderr: StandardErrorContent}' \
+            --output json
+
+          if [ "$STATUS" != "Success" ]; then
+            exit 1
+          fi
