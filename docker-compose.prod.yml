@@ -20,7 +20,7 @@ services:
       - "3000"
 
   frontend:
-    image: 431662316623.dkr.ecr.us-east-1.amazonaws.com/linked-frontend:latest
+    image: 431662316623.dkr.ecr.us-east-1.amazonaws.com/linked-frontend:${IMAGE_TAG}
     restart: unless-stopped
     depends_on:
       - backend
