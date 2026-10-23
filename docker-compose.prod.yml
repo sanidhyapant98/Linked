@@ -1,0 +1,28 @@
+services:
+  backend:
+    image: 431662316623.dkr.ecr.us-east-1.amazonaws.com/linked-backend:${IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://linkedadmin:${DB_PASSWORD}@linked-db.c85kw0ieaso5.us-east-1.rds.amazonaws.com:5432/Linked?sslmode=require
+      NODE_EXTRA_CA_CERTS: /certs/global-bundle.pem
+      RUN_MIGRATIONS: "true"
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX: 100
+      REDIRECT_RATE_LIMIT_WINDOW_MS: 60000
+      REDIRECT_RATE_LIMIT_MAX: 300
+      LOG_LEVEL: info
+      ENABLE_API_DOCS: "false"
+    volumes:
+      - ./certs/global-bundle.pem:/certs/global-bundle.pem:ro
+    expose:
+      - "3000"
+
+  frontend:
+    image: 431662316623.dkr.ecr.us-east-1.amazonaws.com/linked-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
