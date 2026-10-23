@@ -13,6 +13,7 @@ RUN npx prisma generate
 # ---------- Build ----------
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/src/generated/prisma ./src/generated/prisma
 COPY package.json package-lock.json tsconfig.json prisma.config.ts openapi.yaml ./
 COPY prisma ./prisma
 COPY src ./src
